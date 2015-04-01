@@ -6,6 +6,7 @@ setup
 -----
 
 for running the project locally
+
 1. Fork it
 2. Run `$ bundle install`
 3. Run `$ rake db:create` and then `$rake db:migrate`
