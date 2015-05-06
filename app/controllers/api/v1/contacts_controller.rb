@@ -6,10 +6,22 @@ class Api::V1::ContactsController < ApiController
 	end
 
 	def create
-		@contact = Contact.new(contact_params)
+		c_params = contacts_params
+		user_id = c_params[:user_id]
+		contacts_data = []
+		emails = []
+		c_params[:contacts].each do |contact_params|
+			contacts_data << contact_params.to_hash.symbolize_keys.merge({user_id: user_id})
+			emails << contact_params[:email]
+		end
 
-		if @contact.save
-			render 'contact', status: :created
+		@messages = []
+		@messages << ['There are duplicate emails on list'] unless emails.size == emails.uniq.size
+		@messages << ['Undefined user'] unless User.exists?(user_id)
+
+		if @messages.empty? && Contact.mass_insert([:email,:name, :user_id],contacts_data)
+
+			render 'success_json', status: :created
 		else
 			render 'error_json', status: :unprocessable_entity
 		end
@@ -22,8 +34,8 @@ class Api::V1::ContactsController < ApiController
 		params.permit(:user_id)
 	end
 
-	def contact_params
-		params.permit(:email,:name, :user_id)
+	def contacts_params
+		params.permit(:user_id,:contacts => [:email,:name])
 	end
 
 end
